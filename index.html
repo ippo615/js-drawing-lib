@@ -2,8 +2,8 @@
 <html manifest="data.appcache">
 <head>
 	<meta charset="utf-8">
-	<title>Breakout</title>
-	<meta name="description" content="Time Game">
+	<title>js Drawing Library Samples</title>
+	<meta name="description" content="js Drawing Library Samples">
 	<meta name="author" content="Andrew Ippoliti">
 
 	<!-- IN ANDROID BROWSER - enter "about:debug" in the address bar
@@ -65,9 +65,11 @@
 			text-align: left;
 			vertical-align: middle;
 			clear: left;
-			margin-top: 1em;
+			margin-top: 1.9em;
 			width: 90%;
-			min-height: 3em;
+			min-height: 2em;
+			white-space: nowrap;
+			overflow: auto;
 		}
 		.preview-module .text a {
 			float: left;
@@ -92,7 +94,14 @@
 	<canvas id="canvas-main" width=128 height=128 style="border: 1px dashed #000"></canvas>
 	</div>
 	-->
-	<script type="text/javascript" src="./gfx.js"></script>
+
+	<div class="preview-module">
+	Check out the examples below or read the <a href="./api.html">api</a>.
+	Note: you can click on the code to change it. Then click elsewhere to see
+	the result.
+	</div>
+
+	<script type="text/javascript" src="../libs/gfx.js"></script>
 
 	<script type="text/javascript" id="script-doc">
 
@@ -388,6 +397,28 @@ FastConvolution = {
 	      "'real' blur (bottom)."
 };
 
+HaarTransformForward = {
+	name: "Forward Haar Transform",
+	code: "$gfxlib.setStyle('green','black',1.0);\n"+
+	      "$gfxlib.drawStar(32,64,8,24,5,0);\n"+
+	      "$gfxlib.drawStar(96,64,8,24,5,0);\n"+
+	      "$gfxlib.filterHaarTransformForward(64,0,64,128);",
+	desc: "The Haar transform breaks data into 'high frequency' "+
+	      "(or difference) and 'low frequency' (or average) compnents. "+
+	      "This can be also be applied to images. The following applies "+
+	      "a Haar transform to the right side of the canvas. Notice how "+
+	      "that region is divided into 4 areas. The top left is the "+
+	      "average (or low frequency) data. The top right is the high "+
+	      "frequency components in the horizontal direction. The bottom "+
+	      "right is the high frequency components in both directions. "+
+	      "The bottom left is the high frequency components in the vertical "+
+	      "direction. The high frequency components are computed as "+
+	      "differences, this implies that they can be negative. Since "+
+	      "the canvas does not like negative colors those values are adjusted "+
+	      "to fit into the range allowed by the canvas (0 => 128, -127 = 0, "+
+	      "+128 = 255)."
+};
+
 DrawText = {
 	name: "Drawing Text",
 	code: "$gfxlib.setStyle('#F00','#0F0',1.0);\n"+
@@ -642,6 +673,23 @@ ScratchFromRegion = {
 	desc: "You can capture parts of things you have already drawn "+
 	      "and repeat them or add to them."
 };
+ScratchFromFile = {
+	name: "Scratch From File",
+	code: "var scratch={};\n"+
+	      "function onLoad(){\n"+
+	      "\t$gfxlib.drawScratch(scratch,0,0);\n"+
+	      "\t$gfxlib.drawScratch(scratch,64,64);\n"+
+	      "\t$gfxlib.drawScratch(scratch,96,96);\n"+
+	      "}\n"+
+	      "//$gfxlib.scratchFromFile('ball.gif',scratch,onLoad);",
+	desc: "You can load an image from a filename as a scratch canvas. "+
+	      "Once the image is loaded the onLoad function is called. "+
+	      "Normally, you store a reference to a scratch canvas by writing "+
+	      "something like: 'scratch = ...'. In this case you cannot do that "+
+	      "because the image file is loaded asynchronously. You must supply "+
+	      "a blank object that you can later use as a handle to this "+
+	      "scratch after it has loaded."
+};
 
 ViewSimple = {
 	name: "Basic Viewport",
@@ -715,6 +763,7 @@ var examples = [
 	FilterHueShift,
 	Convolution,
 	FastConvolution,
+	HaarTransformForward,
 	DrawText,
 	MeasureText,
 	PathSimple,
@@ -732,6 +781,7 @@ var examples = [
 	ScratchRegionScaling,
 	ScratchPattern,
 	ScratchFromRegion,
+	ScratchFromFile,
 	ViewSimple,
 	ViewWrong,
 	ViewRotate,
@@ -756,8 +806,10 @@ function DrawPre(id){
 	eval(code);
 }
 function HidePre(id){
+	var height = document.getElementById(id).clientHeight;
 	document.getElementById(id).style.display = 'none';
 	document.getElementById(id+'-edit').style.display = 'block';
+	document.getElementById(id+'-edit').style.height = height+'px';
 	document.getElementById(id+'-edit').focus();
 }
 function gDrawPre(id){ return function(){DrawPre(id);}; }
@@ -789,6 +841,7 @@ function CreateExampleDom(example){
 	textContainer.appendChild(myCode);
 	myCode.onclick = gHidePre(example.name);
 
+	// Add a hidden text area
 	var editArea = document.createElement('textarea');
 	editArea.style.display = 'none';
 	editArea.id = example.name + '-edit';
@@ -841,7 +894,132 @@ onload = function(){
 		}
 		return ret;
 	}
-	console.info(diff(end,start));
+	//console.info(diff(end,start));
+
+function forwardHaarTransformR(original){
+	// This is the recursive version
+	////console.info(original);
+	var nElements = original.length;
+	var nHalfElements = Math.ceil(nElements/2);
+	var transformed = [];
+	// initialize the transformed array to 0s
+	for(var i=0; i<nElements; i+=1){
+		transformed[transformed.length] = 0;
+	}
+	// we only need to iterate half the number of elements times
+	for(var i=0; i<nElements; i+=2){
+		// get the 2 adjacent elements
+		var a = original[i];
+		var b = original[i+1];
+		// compute the average
+		transformed[i] = (a+b)/2;
+		// compute the delta
+		transformed[nElements-i-1] = (a - transformed[i]) / 2
+	}
+	// apply the transform to the average
+	if( nElements > 2 ){
+		var transformedAverage = forwardHaarTransformR(transformed.slice(0,nHalfElements));
+		for(var i=0; i<nHalfElements; i+=1){
+			transformed[i] = transformedAverage[i]
+		}
+	}
+	return transformed;
+}
+//console.info(forwardHaarTransformR([1,1,1,1]));
+//console.info(forwardHaarTransformI([1,1,1,1]));
+//console.info(forwardHaarTransformR([1,2,4,8]));
+//console.info(forwardHaarTransformI([1,2,4,8]));
+function forwardHaarTransformI(original){
+	var nElements = original.length;
+	var nHalfElements = Math.floor(nElements/2);
+	var transformed = [];
+	// copy the original
+	for(var i=0; i<nElements; i+=1){
+		transformed[transformed.length] = original[i];
+	}
+	////console.info(transformed);
+	while(nElements >= 2){
+		// copy the old
+		var temp = [];
+		for(var i=0; i<nElements; i+=1){
+			temp[i] = transformed[i];
+		}
+		for(var i=0; i<nElements; i+=2){
+			// get the 2 adjacent elements
+			var a = temp[i];
+			var b = temp[i+1];
+			// compute the average
+			var avg = (a+b)/2;
+			transformed[i] = avg;
+			// compute the delta, but we can't store it yet...
+			transformed[nElements-i-1] = (a - avg) / 2
+		}
+		////console.info(transformed);
+		nElements = Math.floor(nElements/2);
+		nHalfElements = Math.floor(nElements/2);
+	}
+	return transformed;
+}
+function forwardHaarTransform(original){
+	var nElements = original.length,
+	    averages = [],
+	    diffs = [];
+	for( var i=0; i<nElements; i+=2 ){
+		var a = original[i  ],
+		    b = original[i+1];
+		averages.push((a+b)/2);
+		diffs.push((b-a)/2);
+	}
+	return averages.concat(diffs);
+}
+//console.info(forwardHaarTransform([1,1,1,1]));
+//console.info(forwardHaarTransformN([1,1,1,1],2));
+//console.info(reverseHaarTransformN(forwardHaarTransformN([1,1,1,1],2),1));
+//console.info(reverseHaarTransform(forwardHaarTransform([1,1,1,1])));
+//console.info(forwardHaarTransform([1,2,3,4]));
+//console.info(reverseHaarTransform(forwardHaarTransform([1,2,3,4])));
+function reverseHaarTransform(transformed){
+	var nElements = transformed.length,
+	    nHalfElements = Math.floor(nElements/2),
+	    originals = [];
+	for( var i=0; i<nHalfElements; i+=1 ){
+		var iAverage = transformed[i  ],
+		    iDiff    = transformed[i+nHalfElements];
+		originals.push( iAverage - iDiff );
+		originals.push( iAverage + iDiff );
+	}
+	return originals;
+}
+function forwardHaarTransformN(original,nMaxTimes){
+	var nStartElements = original.length,
+	    nElements = original.length,
+	    nHalfElements = nElements*0.5,
+	    temp = [],
+	    transformed = original;
+	for( var i=0; i<nMaxTimes; i+=1 ){
+		temp = forwardHaarTransform(transformed.slice(0,nElements));
+		transformed = temp.concat( transformed.slice(temp.length, nStartElements) );
+		nElements = Math.floor(nElements * 0.5);
+		if( nElements < 2 ){
+			break;
+		}
+	}
+	return transformed;
+}
+function reverseHaarTransformN(original,nStartLevel){
+	var nStartElements = original.length,
+	    nElements = Math.pow(2,nStartLevel),
+	    nIterations = Math.log(nStartElements)/Math.log(2),
+	    temp = [],
+	    transformed = original;
+	for( var i=0; i<nIterations; i+=1 ){
+		temp = reverseHaarTransform(transformed.slice(0,nElements));
+		transformed = temp.concat( transformed.slice(temp.length, nStartElements) );
+		nElements = nElements*2;
+	}
+	return transformed;
+}
+
 }
 </script>
 

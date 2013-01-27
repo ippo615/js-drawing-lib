@@ -143,7 +143,7 @@ var $gfxlib = (function($gfxlib){
 		domCan.width = Math.round(domImage.width);
 		domCan.height = Math.round(domImage.height);
 		var ctx = domCan.getContext('2d');
-		ctx.drawImage(0,0,xSize,ySize,0,0,xSize,ySize);
+		ctx.drawImage(domImage,0,0,xSize,ySize,0,0,xSize,ySize);
 		return {
 			id: "",
 			xSize: xSize,
@@ -151,6 +151,33 @@ var $gfxlib = (function($gfxlib){
 			domNode: domCan,
 			ctx: ctx
 		};
+	};
+
+	var setupImageLoadCallback = function(domImage,handle,onLoad){
+	/// Internal function to setup the onload function of a
+	/// image being loaded as a scratch.
+		return function(){
+			var tmp = $gfxlib.scratchFromImage(domImage);
+			handle.id = tmp.id;
+			handle.xSize = tmp.xSize;
+			handle.ySize = tmp.ySize;
+			handle.domNode = tmp.domNode;
+			handle.ctx = tmp.ctx;
+			onLoad(handle);
+		};
+	};
+
+	$gfxlib.scratchFromFile = function(url,handle,onLoad){
+	/// Returns a scratch canvas created from an image url.
+	/// url: string: The path and filename of the image to load.
+	/// handle: object: Object that will be used as a handle to
+	///         this image.
+	/// onLoad: function: The file to call once the image has loaded.
+	///         The function will be passed the handle to the scratch,
+	///         you can choose to ignore it.
+		var tmpImg = document.createElement('img');
+		tmpImg.src = url;
+		tmpImg.onload = setupImageLoadCallback(tmpImg,handle,onLoad);
 	};
 
 	$gfxlib.drawScratch = function(scratch,x,y){
@@ -725,10 +752,11 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext;
 		ctx.beginPath();
 		ctx.moveTo(x,y);
+		ctx.moveTo(x,y);
 		pathLastXs = [x];
 		pathLastYs = [y];
 		pathLastDirs = [0];
-		pathLastPoint = 0;
+		pathLastPoint = 1;
 		return $gfxlib;
 	};
 
@@ -1283,8 +1311,8 @@ var $gfxlib = (function($gfxlib){
 	///          function as the last argument.
 
 		var ctx = $gfxlib.canvasContext,
-		    xSize = $gfxlib.viewSizeX,
-		    ySize = $gfxlib.viewSizeY,
+		    xSize = parseInt($gfxlib.canvasNode.width),
+		    ySize = parseInt($gfxlib.canvasNode.height),
 		    imageData = ctx.getImageData(0, 0, xSize, ySize),
 		    pixels = imageData.data,
 		    nPixels = pixels.length,
@@ -1369,6 +1397,25 @@ var $gfxlib = (function($gfxlib){
 		return [x,y,r,g,0,a,o];
 	};
 
+	$gfxlib.filterFuncColorNoise = function(x,y,r,g,b,a,o){
+	/// Returns a random color (same alpha).
+		return [x,y,Math.random()*255,Math.random()*255,Math.random()*255,a,o];
+	};
+
+	$gfxlib.filterFuncAddNoise = function(x,y,r,g,b,a,o){
+	/// Returns the pixel with noise added
+	/// o.r: int: (0-128) the maximum amount of red noise to add
+	/// o.g: int: (0-128) the maximum amount of green noise to add
+	/// o.b: int: (0-128) the maximum amount of blue noise to add
+	/// o.a: int: (0-128) the maximum amount of alpha noise to add
+		return [x,y,
+			r-o.r+2*o.r*Math.random(),
+			g-o.g+2*o.g*Math.random(),
+			b-o.b+2*o.b*Math.random(),
+			a-o.a+2*o.a*Math.random(),o];
+	};
+
+
 	$gfxlib.filterFuncToLuma = function(x,y,r,g,b,a,o){
 	/// Returns the luminance value of the pixel.
 		//extract "luma" channel based on "Rec. 601"
@@ -1452,6 +1499,212 @@ var $gfxlib = (function($gfxlib){
 		rB = (255*rB);
 
 		return [x,y, rR,rG,rB, a, o];
+	};
+
+	$gfxlib.filterHaarTransformForward = function(x,y,xSize,ySize){
+	/// Divides the region into 'low frequency' (average) and 'high frequency'
+	/// (difference) areas. 
+	/// x: int: the x location of the starting point of the center
+	///    of the convolution matrix
+	/// y: int: the y location of the starting point of the center
+	///    of the convolution matrix
+	/// xSize: int: the number of pixels horizontally to convolve
+	/// ySize: int: the number of pixels vertically to convolve
+
+	// Note that the canvas element can only store r,g,b as ints between 0-255.
+	///This means I need to 'offset' all 
+	// values since negative values cannot be stored. I will set 0 to the middle
+	// value (128 and 0.5) anything above that is positive, anything below is 
+	// negative.
+		var rOffset = 128,
+		    gOffset = 128,
+		    bOffset = 128,
+		    aOffset = 128;
+
+		var ctx = $gfxlib.canvasContext,
+		    imageData = ctx.getImageData(x, y, xSize, ySize),
+		    pixels = imageData.data,
+		    nPixels = pixels.length,
+		    xHalf = xSize/2,
+		    yHalf = ySize/2,
+		    resultHor = ctx.createImageData(xSize, ySize),
+		    resultVer = ctx.createImageData(xSize, ySize),
+		    pos = 0, posNext = 0,
+		    posAvg = 0, posDiff = 0,
+		    border = 0,
+		    yLimit = ySize -border,
+		    xLimit = xSize -border;
+
+
+		// Horizontal pass (ie Haar transforming every row)
+		for(var iy=0; iy<ySize; iy+=1){
+			for(var ix=border; ix<xLimit; ix+=2){
+
+				// Read the values to tbe transformed
+				pos = (iy*xSize+ix-border)*4;
+				//console.info(pos);
+				posNext = (iy*xSize+(ix+1)-border)*4;
+				//console.info(posNext);
+				var r1 = pixels[pos+0],
+				    r2 = pixels[posNext+0],
+				    g1 = pixels[pos+1],
+				    g2 = pixels[posNext+1],
+				    b1 = pixels[pos+2],
+				    b2 = pixels[posNext+2],
+				    a1 = pixels[pos+3],
+				    a2 = pixels[posNext+3];
+
+				// Store averages
+				posAvg = (iy*xSize+(ix-border)/2)*4;
+				//console.info(posAvg);
+				resultHor.data[posAvg+0] = (r1+r2)/2;
+				resultHor.data[posAvg+1] = (g1+g2)/2;
+				resultHor.data[posAvg+2] = (b1+b2)/2;
+				resultHor.data[posAvg+3] = (a1+a2)/2;
+
+				// Store differences
+				posDiff = (iy*xSize+xHalf+(ix-border)/2)*4;
+				//console.info(posDiff);
+				resultHor.data[posDiff+0] = rOffset+(r1-r2)/2;
+				resultHor.data[posDiff+1] = gOffset+(g1-g2)/2;
+				resultHor.data[posDiff+2] = bOffset+(b1-b2)/2;
+				resultHor.data[posDiff+3] = aOffset+(a1-a2)/2;
+
+			}
+		}
+
+		// Verticle pass (ie transforming each column)
+		for(var ix=0; ix<xSize; ix+=1){
+			for(var iy=border; iy<yLimit; iy+=2){
+
+				// Read the values to tbe transformed
+				pos = ((iy-border)*xSize+ix)*4;
+				posNext = ((iy+1-border)*xSize+ix)*4;
+				var r1 = resultHor.data[pos+0],
+				    r2 = resultHor.data[posNext+0],
+				    g1 = resultHor.data[pos+1],
+				    g2 = resultHor.data[posNext+1],
+				    b1 = resultHor.data[pos+2],
+				    b2 = resultHor.data[posNext+2],
+				    a1 = resultHor.data[pos+3],
+				    a2 = resultHor.data[posNext+3];
+
+				// Store averages
+				posAvg = (((iy-border)/2)*xSize+ix)*4;
+				resultVer.data[posAvg+0] = (r1+r2)/2;
+				resultVer.data[posAvg+1] = (g1+g2)/2;
+				resultVer.data[posAvg+2] = (b1+b2)/2;
+				resultVer.data[posAvg+3] = (a1+a2)/2;
+
+				// Store differences
+				posDiff = (((iy-border)/2+yHalf)*xSize+ix)*4;
+				resultVer.data[posDiff+0] = rOffset+(r1-r2)/2;
+				resultVer.data[posDiff+1] = gOffset+(g1-g2)/2;
+				resultVer.data[posDiff+2] = bOffset+(b1-b2)/2;
+				resultVer.data[posDiff+3] = aOffset+(a1-a2)/2;
+			}
+		}
+		ctx.putImageData(resultVer,x,y);
+	};
+
+	$gfxlib.filterHaarTransformReverse = function(x,y,xSize,ySize){
+	/// Reverts the region that was previously Haar transformed.
+	/// x: int: the x location of the starting point of the center
+	///    of the convolution matrix
+	/// y: int: the y location of the starting point of the center
+	///    of the convolution matrix
+	/// xSize: int: the number of pixels horizontally to convolve
+	/// ySize: int: the number of pixels vertically to convolve
+
+	// Note that the canvas element can only store r,g,b as ints between 0-255.
+	// This means I need to 'offset' all 
+	// values since negative values cannot be stored. I will set 0 to the middle
+	// value (128 and 0.5) anything above that is positive, anything below is 
+	// negative.
+		var rOffset = 128,
+		    gOffset = 128,
+		    bOffset = 128,
+		    aOffset = 128;
+
+		var ctx = $gfxlib.canvasContext,
+		    imageData = ctx.getImageData(x, y, xSize, ySize),
+		    pixels = imageData.data,
+		    nPixels = pixels.length,
+		    xHalf = xSize/2,
+		    yHalf = ySize/2,
+		    resultHor = ctx.createImageData(xSize, ySize),
+		    resultVer = ctx.createImageData(xSize, ySize),
+		    pos = 0, posNext = 0,
+		    posAvg = 0, posDiff = 0,
+		    border = 0,
+		    yLimit = ySize -border,
+		    xLimit = xSize -border;
+
+		// Verticle pass (ie transforming each column)
+		// We forward transform horizontally then vertically; therefore,
+		// to reverse we must inverse transfrom vertically then horizontally.
+		// I don't actually know that that is true, but it appears logical.
+		for(var ix=0; ix<xSize; ix+=1){
+			for(var iy=border; iy<yLimit; iy+=2){
+
+				// Read averages and differences
+				posAvg = (((iy-border)/2)*xSize+ix)*4;
+				posDiff = (((iy-border)/2+yHalf)*xSize+ix)*4;
+				var rA = pixels[posAvg +0],
+				    rD = pixels[posDiff+0] - rOffset,
+				    gA = pixels[posAvg +1],
+				    gD = pixels[posDiff+1] - gOffset,
+				    bA = pixels[posAvg +2],
+				    bD = pixels[posDiff+2] - bOffset,
+				    aA = pixels[posAvg +3],
+				    aD = pixels[posDiff+3] - aOffset;
+
+				// Untransform them
+				pos = ((iy-border)*xSize+ix)*4;
+				posNext = ((iy+1-border)*xSize+ix)*4;
+				resultVer.data[pos+0]     = rA + rD;
+				resultVer.data[posNext+0] = rA - rD;
+				resultVer.data[pos+1]     = gA + gD;
+				resultVer.data[posNext+1] = gA - gD;
+				resultVer.data[pos+2]     = bA + bD;
+				resultVer.data[posNext+2] = bA - bD;
+				resultVer.data[pos+3]     = aA + aD;
+				resultVer.data[posNext+3] = aA - aD;
+
+			}
+		}
+
+		// Horizontal pass (ie Haar transforming every row)
+		for(var iy=0; iy<ySize; iy+=1){
+			for(var ix=border; ix<xLimit; ix+=2){
+
+				// Read averages and differences
+				posAvg = (iy*xSize+(ix-border)/2)*4;
+				posDiff = (iy*xSize+xHalf+(ix-border)/2)*4;
+				var rA = resultVer.data[posAvg +0],
+				    rD = resultVer.data[posDiff+0] - rOffset,
+				    gA = resultVer.data[posAvg +1],
+				    gD = resultVer.data[posDiff+1] - gOffset,
+				    bA = resultVer.data[posAvg +2],
+				    bD = resultVer.data[posDiff+2] - bOffset,
+				    aA = resultVer.data[posAvg +3],
+				    aD = resultVer.data[posDiff+3] - aOffset;
+
+				// Untransform them
+				pos = (iy*xSize+ix-border)*4;
+				posNext = (iy*xSize+(ix+1)-border)*4;
+				resultHor.data[pos+0]     = rA + rD;
+				resultHor.data[posNext+0] = rA - rD;
+				resultHor.data[pos+1]     = gA + gD;
+				resultHor.data[posNext+1] = gA - gD;
+				resultHor.data[pos+2]     = bA + bD;
+				resultHor.data[posNext+2] = bA - bD;
+				resultHor.data[pos+3]     = aA + aD;
+				resultHor.data[posNext+3] = aA - aD;
+			}
+		}
+
+		ctx.putImageData(resultHor,x,y);
 	};
 
 	return $gfxlib;
