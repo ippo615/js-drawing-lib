@@ -3,6 +3,7 @@ js-drawing-lib
 
 A library for drawing stuff in a web-browser.
 
-I'm still trying to setup gh-pages. I followed the information at
-https://help.github.com/articles/creating-project-pages-manually
-but I still am not seeing anything.
+Check out http://ippo615.github.com/js-drawing-lib/
+to see some examples and to experiment with the library.
+
+The only file you really need is the gfx.js file.
