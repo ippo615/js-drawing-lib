@@ -804,14 +804,14 @@ function DrawPre(id){
 	domPre.innerHTML = "";
 	domPre.appendChild(document.createTextNode(code));
 	domPre.style.display = 'block';
-	domCode.style.display = 'transparent';
+	domCode.style.display = 'none';
 	$gfxlib.setCanvasNode(document.getElementById(id+'-canvas'));
 	$gfxlib.drawClearAll();
 	eval(code);
 }
 function HidePre(id){
 	var height = document.getElementById(id).clientHeight;
-	document.getElementById(id).style.display = 'transparent';
+	document.getElementById(id).style.display = 'none';
 	document.getElementById(id+'-edit').style.display = 'block';
 	document.getElementById(id+'-edit').style.height = height+'px';
 	document.getElementById(id+'-edit').focus();
@@ -847,7 +847,7 @@ function CreateExampleDom(example){
 
 	// Add a hidden text area
 	var editArea = document.createElement('textarea');
-	editArea.style.display = 'transparent';
+	editArea.style.display = 'none';
 	editArea.id = example.name + '-edit';
 	editArea.value = example.code;
 	editArea.onblur = gDrawPre(example.name);
