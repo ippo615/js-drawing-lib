@@ -442,7 +442,7 @@ MeasureText = {
 	      "var w = $gfxlib.textGetWidth('Hello World!');\n"+
 	      "$gfxlib.setStyle('yellow','red',1.0);\n"+
 	      "$gfxlib.drawRect(32,32,w,12);\n"+
-	      "$gfxlib.setStyle('black','none',1.0);\n"+
+	      "$gfxlib.setStyle('black','transparent',1.0);\n"+
 	      "$gfxlib.textDraw(32,32,'Hello World!');",
 	desc: "You can measure the width of your text after you style "+
 	      "it and before you draw it."
@@ -664,7 +664,7 @@ ScratchPattern = {
 };
 ScratchFromRegion = {
 	name: "Scratch From Region",
-	code: "$gfxlib.setStyle('none','#F00',1.0);\n"+
+	code: "$gfxlib.setStyle('transparent','#F00',1.0);\n"+
 	      "$gfxlib.drawRect(16,16,32,32);\n"+
 	      "$gfxlib.setStyle('#0F0','black',1.0);\n"+
 	      "$gfxlib.drawStar(16,16,8,16,5,0);\n"+
@@ -698,9 +698,9 @@ ScratchFromFile = {
 ViewSimple = {
 	name: "Basic Viewport",
 	code: "//$gfxlib.viewSetCorners(0,0,64,64);\n"+
-	      "$gfxlib.setStyle('none','red',1.0);\n"+
+	      "$gfxlib.setStyle('transparent','red',1.0);\n"+
 	      "$gfxlib.drawRect(0,0,64,64);\n"+
-	      "$gfxlib.setStyle('blue','none',1.0);\n"+
+	      "$gfxlib.setStyle('blue','transparent',1.0);\n"+
 	      "$gfxlib.drawRect(16,16,32,32);",
 	desc: "You can zoom or pan to different parts "+
 	      "of the canvas using views. This canvas has the "+
@@ -709,9 +709,9 @@ ViewSimple = {
 
 ViewWrong = {
 	name: "Viewport Error",
-	code: "$gfxlib.setStyle('none','red',1.0);\n"+
+	code: "$gfxlib.setStyle('transparent','red',1.0);\n"+
 	      "$gfxlib.drawRect(0,0,64,64);\n"+
-	      "$gfxlib.setStyle('blue','none',1.0);\n"+
+	      "$gfxlib.setStyle('blue','transparent',1.0);\n"+
 	      "$gfxlib.drawRect(16,16,32,32);\n"+
 	      "$gfxlib.viewSetCorners(0,0,64,64);",
 	desc: "Don't set the after you draw stuff. Set the "+
@@ -722,9 +722,9 @@ ViewRotate = {
 	name: "Viewport Rotation",
 	code: "$gfxlib.viewSetCorners(0,0,64,64);\n"+
 	      "$gfxlib.viewRotateTo(15);\n"+
-	      "$gfxlib.setStyle('none','red',1.0);\n"+
+	      "$gfxlib.setStyle('transparent','red',1.0);\n"+
 	      "$gfxlib.drawRect(0,0,64,64);\n"+
-	      "$gfxlib.setStyle('blue','none',1.0);\n"+
+	      "$gfxlib.setStyle('blue','transparent',1.0);\n"+
 	      "$gfxlib.drawRect(16,16,32,32);",
 	desc: "You can also set the rotation of the viewport "+
 	      "to a specific angle (in degrees). Positive angles "+
@@ -736,9 +736,9 @@ ViewZoom = {
 	code: "$gfxlib.viewSetCorners(0,0,64,64);\n"+
 	      "$gfxlib.viewRotateTo(0);\n"+
 	      "$gfxlib.viewZoomTo(1.5,1.5);\n"+
-	      "$gfxlib.setStyle('none','red',1.0);\n"+
+	      "$gfxlib.setStyle('transparent','red',1.0);\n"+
 	      "$gfxlib.drawRect(0,0,64,64);\n"+
-	      "$gfxlib.setStyle('blue','none',1.0);\n"+
+	      "$gfxlib.setStyle('blue','transparent',1.0);\n"+
 	      "$gfxlib.drawRect(16,16,32,32);",
 	desc: "You can also set the rotation of the viewport "+
 	      "to a specific angle (in degrees). Positive angles "+
@@ -804,14 +804,14 @@ function DrawPre(id){
 	domPre.innerHTML = "";
 	domPre.appendChild(document.createTextNode(code));
 	domPre.style.display = 'block';
-	domCode.style.display = 'none';
+	domCode.style.display = 'transparent';
 	$gfxlib.setCanvasNode(document.getElementById(id+'-canvas'));
 	$gfxlib.drawClearAll();
 	eval(code);
 }
 function HidePre(id){
 	var height = document.getElementById(id).clientHeight;
-	document.getElementById(id).style.display = 'none';
+	document.getElementById(id).style.display = 'transparent';
 	document.getElementById(id+'-edit').style.display = 'block';
 	document.getElementById(id+'-edit').style.height = height+'px';
 	document.getElementById(id+'-edit').focus();
@@ -847,7 +847,7 @@ function CreateExampleDom(example){
 
 	// Add a hidden text area
 	var editArea = document.createElement('textarea');
-	editArea.style.display = 'none';
+	editArea.style.display = 'transparent';
 	editArea.id = example.name + '-edit';
 	editArea.value = example.code;
 	editArea.onblur = gDrawPre(example.name);
