@@ -752,7 +752,7 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext;
 		ctx.beginPath();
 		ctx.moveTo(x,y);
-		ctx.moveTo(x,y);
+		//ctx.moveTo(x,y);
 		pathLastXs = [x];
 		pathLastYs = [y];
 		pathLastDirs = [0];
@@ -866,11 +866,12 @@ var $gfxlib = (function($gfxlib){
 
 		var ctx = $gfxlib.canvasContext,
 		    nPts = pathLastXs.length;
-		for( var i = pathLastPoint; i<=nPts; i+=1 ){
-			var x0 = pathLastXs[i-2],
-			    y0 = pathLastYs[i-2],
-			    x1 = pathLastXs[i-1],
-			    y1 = pathLastYs[i-1];
+		//for( var i = pathLastPoint; i<=nPts; i+=1 ){
+		for( var i = pathLastPoint; i<nPts; i+=1 ){
+			var x0 = pathLastXs[i-1],
+			    y0 = pathLastYs[i-1],
+			    x1 = pathLastXs[i  ],
+			    y1 = pathLastYs[i  ];
 			//pathLastPoint = pathLastYs.length - 1;
 	
 			// get the change in x,y
