@@ -7,6 +7,9 @@ var $gfxlib = (function($gfxlib){
 	$gfxlib.windowSizeX = 320;
 	$gfxlib.windowSizeY = 320;
 
+	var degToRad = Math.PI/180;
+	var radToDeg = 180/Math.PI;
+
 	$gfxlib.createCanvasNode = function(parentNode,id,zIndex,width,height){
 	/// Creates a new canvas dom element and adds it to the DOM. Returns
 	/// an object that has information about the canvas element.
@@ -20,8 +23,8 @@ var $gfxlib = (function($gfxlib){
 	/// height: int: the number of vertical pixels this canvas should
 	///        be. If omitted, defaults to parentNode.style.height.
 
-		if( ! width ){ var width = parseInt(parentNode.style.width); }
-		if( ! height ){ var height = parseInt(parentNode.style.height); }
+		if( ! width ){ width = parseInt(parentNode.style.width,10); }
+		if( ! height ){ height = parseInt(parentNode.style.height,10); }
 		var canvasNode = document.createElement('canvas');
 		// Set the id and zIndex.
 		canvasNode.id = id;
@@ -37,6 +40,10 @@ var $gfxlib = (function($gfxlib){
 		canvasNode.style.pointerEvents = "none";
 		// Add it to the parent.
 		parentNode.appendChild(canvasNode);
+		// if we had to use explorer canvas:
+		if( typeof G_vmlCanvasManager !== 'undefined' ){
+			G_vmlCanvasManager.initElement(canvasNode);
+		}
 		return {
 			id: id,
 			xSize: width,
@@ -104,6 +111,7 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext;
 
 		// Copy the data
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var oldCtx = oldCanvasNode.getContext('2d'),
 		    oldData = oldCtx.getImageData(x, y, xSize, ySize);
 		ctx.putImageData(oldData,0,0);
@@ -127,8 +135,8 @@ var $gfxlib = (function($gfxlib){
 		$gfxlib.setCanvasNode(oldCanvasNode);
 		return {
 			id: "",
-			xSize: parseInt(canvasScratch.width),
-			ySize: parseInt(canvasScratch.height),
+			xSize: parseInt(canvasScratch.width,10),
+			ySize: parseInt(canvasScratch.height,10),
 			domNode: canvasScratch,
 			ctx: canvasScratch.getContext('2d')
 		};
@@ -278,6 +286,7 @@ var $gfxlib = (function($gfxlib){
 		// want to do in the order you want to do it, then code it
 		// backwards.
 		var ctx = $gfxlib.canvasContext;
+		if( ! ctx.setTransform ){ return; } // BAD BUG FIX!
 		ctx.setTransform(1,0,0,1,0,0);
 		// First I want to translate to the center of viewport
 		// to (second) rotate around the center of viewport. Then
@@ -591,9 +600,14 @@ var $gfxlib = (function($gfxlib){
 	/// canvas transparent until something new is drawn.
 		var ctx = $gfxlib.canvasContext;
 		ctx.save();
-		ctx.setTransform(1,0,0,1,0,0);
-		ctx.clearRect(0,0,$gfxlib.windowSizeX,$gfxlib.windowSizeY);
-		ctx.restore();
+		// Some old browsers don't have set transform
+		if( ! ctx.setTransform ){
+			$gfxlib.canvasNode.width = $gfxlib.windowSizeX;
+		}else{
+			ctx.setTransform(1,0,0,1,0,0);
+			ctx.clearRect(0,0,$gfxlib.windowSizeX,$gfxlib.windowSizeY);
+			ctx.restore();
+		}
 	};
 
 	$gfxlib.drawClearRect = function(xMin,yMin,xSize,ySize){
@@ -617,11 +631,14 @@ var $gfxlib = (function($gfxlib){
 	/// nCellsY: int: The number of cells that will be placed vertically.
 
 		var ctx = $gfxlib.canvasContext,
-		    x = xOffset;
-		for(var ix=0; ix<nCellsX; ix += 1){
+		    x = xOffset,
+		    y = yOffset,
+		    ix = 0,
+		    iy = 0;
+		for( ix=0; ix < nCellsX; ix += 1){
 
-			var y = yOffset;
-			for(var iy=0; iy<nCellsY; iy += 1){
+			y = yOffset;
+			for( iy=0; iy < nCellsY; iy += 1){
 				if( ((ix + iy) % 2) === 0 ){
 					ctx.fillRect(x,y,xSize,ySize);
 				}
@@ -1025,6 +1042,8 @@ var $gfxlib = (function($gfxlib){
 	/// y: float: the y location of the text.
 	/// text: string: the information to be written
 		var ctx = $gfxlib.canvasContext;
+		if( ! ctx.fillText ){ return; } // BAD
+		//if( ! ctx.strokeText ){ return; } // BAD
 		ctx.fillText(text,x,y);
 		ctx.strokeText(text,x,y);
 	};
@@ -1032,6 +1051,7 @@ var $gfxlib = (function($gfxlib){
 	$gfxlib.textGetWidth = function(text){
 	/// Returns the width of text if it was drawn in the current style.
 	/// text: string: text to be measure
+		if( ! $gfxlib.canvasContext.measureText ){ return 0; } // BAD
 		return $gfxlib.canvasContext.measureText(text).width;
 	};
 
@@ -1052,7 +1072,7 @@ var $gfxlib = (function($gfxlib){
 	///         weights for the current row (from left to right).
 	///         The last 3 represent the weights for pixels below
 	///         the current row.
-
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
@@ -1144,7 +1164,7 @@ var $gfxlib = (function($gfxlib){
 	///         be multiplied and added to each pixel.
 	///         The first 3 represent the weights for the pixels
 	///         above the current row
-
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
@@ -1239,6 +1259,7 @@ var $gfxlib = (function($gfxlib){
 
 	// This method actually ignores the contribution of diagonal
 	// elements
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
@@ -1310,7 +1331,7 @@ var $gfxlib = (function($gfxlib){
 	///         argument of this function.
 	/// options: object: an object that is passed to the filter
 	///          function as the last argument.
-
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
 		    xSize = parseInt($gfxlib.canvasNode.width),
 		    ySize = parseInt($gfxlib.canvasNode.height),
@@ -1354,7 +1375,7 @@ var $gfxlib = (function($gfxlib){
 	///         then x=32 is passed as 0, x=33 is passed as 1, etc).
 	/// options: object: an object that is passed to the filter
 	///          function as the last argument.
-
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
@@ -1521,7 +1542,7 @@ var $gfxlib = (function($gfxlib){
 		    gOffset = 128,
 		    bOffset = 128,
 		    aOffset = 128;
-
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
@@ -1626,7 +1647,7 @@ var $gfxlib = (function($gfxlib){
 		    gOffset = 128,
 		    bOffset = 128,
 		    aOffset = 128;
-
+		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
@@ -1710,4 +1731,3 @@ var $gfxlib = (function($gfxlib){
 
 	return $gfxlib;
 }({}));
-

@@ -104,7 +104,9 @@
 
 	</div>
 
-
+	<!--[if lt IE 9]>
+		<script type="text/javascript" src="./excanvas.compiled.js"></script>
+	<![endif]-->
 	<script type="text/javascript" src="./gfx.js"></script>
 
 	<script type="text/javascript" id="script-doc">
@@ -121,6 +123,7 @@ requestAnimFrame = (function(){
 		};
 })();
 // ------------------------------------------------------------- [ Simple Test ] -
+
 var TemplateStatic = (function($gfx){
 	var mod = {};
 	mod.start = function(){
@@ -860,10 +863,15 @@ function CreateExampleDom(example){
 	myCanvas.id = example.name+'-canvas';
 	myCanvas.width = 128;
 	myCanvas.height = 128;
-	DrawModule(example,myCanvas);
 	myContainer.appendChild(myCanvas);
 
 	document.body.appendChild(myContainer);
+
+	// if we needed to use explorer canvas
+	if( typeof G_vmlCanvasManager !== 'undefined' ){
+		G_vmlCanvasManager.initElement(myCanvas);
+	}
+	DrawModule(example,myCanvas);
 }
 
 // ---------------------------------------------------------------- [ Main ] --
@@ -887,6 +895,7 @@ onload = function(){
 		CreateExampleDom(examples[i]);
 	}
 
+	/*
 	var start = {x: 3, y:4};
 	var end = {x:6, y:8};
 	function diff(a,b){
@@ -898,8 +907,9 @@ onload = function(){
 		}
 		return ret;
 	}
+	*/
 	//console.info(diff(end,start));
-
+/*
 function forwardHaarTransformR(original){
 	// This is the recursive version
 	////console.info(original);
@@ -1023,7 +1033,7 @@ function reverseHaarTransformN(original,nStartLevel){
 	}
 	return transformed;
 }
-
+*/
 }
 </script>
 
