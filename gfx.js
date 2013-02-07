@@ -7,8 +7,8 @@ var $gfxlib = (function($gfxlib){
 	$gfxlib.windowSizeX = 320;
 	$gfxlib.windowSizeY = 320;
 
-	var degToRad = Math.PI/180;
-	var radToDeg = 180/Math.PI;
+	var degToRad = Math.PI/180,
+	    radToDeg = 180/Math.PI;
 
 	$gfxlib.createCanvasNode = function(parentNode,id,zIndex,width,height){
 	/// Creates a new canvas dom element and adds it to the DOM. Returns
@@ -145,9 +145,9 @@ var $gfxlib = (function($gfxlib){
 	$gfxlib.scratchFromImage = function(domImage){
 	/// Returns a scratch canvas created from a dom image.
 	/// domImage: dom: Image element from the DOM.
-		var domCan = document.createElement('canvas');
-		var xSize = Math.round(domImage.width);
-		var ySize = Math.round(domImage.height);
+		var domCan = document.createElement('canvas'),
+		    xSize = Math.round(domImage.width),
+		    ySize = Math.round(domImage.height);
 		domCan.width = Math.round(domImage.width);
 		domCan.height = Math.round(domImage.height);
 		var ctx = domCan.getContext('2d');
@@ -228,14 +228,16 @@ var $gfxlib = (function($gfxlib){
 	///        in the destination canvas
 	/// yDest: float: the location where the top edge will appear
 	///        in the destination canvas
-		var xSize = xMax - xMin;
-		var ySize = yMax - yMin;
+		var xSize = xMax - xMin,
+		    ySize = yMax - yMin;
 		$gfxlib.canvasContext.drawImage(scratch.domNode,
 			xMin,yMin,xSize,ySize,
 			xDest,yDest,xSize,ySize);
 	};
 
-	$gfxlib.drawScratchPartScaled = function(scratch,xMin,yMin,xMax,yMax,xDest,yDest,xScale,yScale){
+	$gfxlib.drawScratchPartScaled = function(scratch,
+		xMin,yMin,xMax,yMax,
+		xDest,yDest,xScale,yScale){
 	/// Draws the scratch canvas onto the current canvas.
 	/// scratch: object: a scratch canvas created from one of the scratch
 	///          calls.
@@ -251,8 +253,8 @@ var $gfxlib = (function($gfxlib){
 	///         1 is no scale, 0.5 is half, 2 is double, etc...
 	/// yScale: float: the amount to scale the scratch in the y direction,
 	///         1 is no scale, 0.5 is half, 2 is double, etc...
-		var xSize = xMax - xMin;
-		var ySize = yMax - yMin;
+		var xSize = xMax - xMin,
+		    ySize = yMax - yMin;
 		$gfxlib.canvasContext.drawImage(scratch.domNode,
 			xMin,yMin,xSize,ySize,
 			xDest,yDest,xSize*xScale,ySize*yScale);
@@ -509,8 +511,8 @@ var $gfxlib = (function($gfxlib){
 		    idealRatio = xSize / ySize;
 		if( aspectRatio !== idealRatio ){
 			// Keep stuff centered
-			var xCenter = $gfxlib.viewMinX + $gfxlib.viewSizeX / 2;
-			var yCenter = $gfxlib.viewMinY + $gfxlib.viewSizeY / 2;
+			var xCenter = $gfxlib.viewMinX + $gfxlib.viewSizeX / 2,
+			    yCenter = $gfxlib.viewMinY + $gfxlib.viewSizeY / 2;
 			// rescale so that the smaller dimension is enlarged
 			if( $gfxlib.viewSizeX > $gfxlib.viewSizeY ){
 				// rescale y
@@ -522,8 +524,8 @@ var $gfxlib = (function($gfxlib){
 			$gfxlib.viewSizeX = $gfxlib.windowSizeX / $gfxlib.viewScaleX;
 			$gfxlib.viewSizeY = $gfxlib.windowSizeY / $gfxlib.viewScaleY;
 			// Half size
-			var xHalf = $gfxlib.viewSizeX / 2;
-			var yHalf = $gfxlib.viewSizeY / 2;
+			var xHalf = $gfxlib.viewSizeX / 2,
+			    yHalf = $gfxlib.viewSizeY / 2;
 			// 
 			$gfxlib.viewMinX = xCenter - xHalf;
 			$gfxlib.viewMinY = yCenter - yHalf;
@@ -621,7 +623,8 @@ var $gfxlib = (function($gfxlib){
 		ctx.clearRect(xMin,yMin,xSize,ySize);
 	};
 
-	$gfxlib.drawCheckerBoard = function(xOffset,yOffset,xSize,ySize,nCellsX,nCellsY){
+	$gfxlib.drawCheckerBoard = function(xOffset,yOffset,
+		xSize,ySize,nCellsX,nCellsY){
 	/// Draws a checker board pattern on the canvas.
 	/// xOffset: float: The starting x location in the world.
 	/// yOffset: float: The starting y location in the world.
@@ -703,9 +706,10 @@ var $gfxlib = (function($gfxlib){
 		var dAngle = (360 / (nPoints*2))*degToRad,
 		    iAngle = angle*degToRad,
 		    x = cx + rOut*Math.cos(iAngle),
-		    y = cy + rOut*Math.sin(iAngle);
+		    y = cy + rOut*Math.sin(iAngle),
+		    i;
 		ctx.moveTo(x,y);
-		for( var i=1; i<nPoints; i+=1 ){
+		for( i=1; i<nPoints; i+=1 ){
 			iAngle += dAngle;
 			x = cx + rIn*Math.cos(iAngle);
 			y = cy + rIn*Math.sin(iAngle);
@@ -738,9 +742,10 @@ var $gfxlib = (function($gfxlib){
 		var dAngle = (360 / nPoints)*degToRad,
 		    iAngle = angle*degToRad,
 		    x = cx + r*Math.cos(iAngle),
-		    y = cy + r*Math.sin(iAngle);
+		    y = cy + r*Math.sin(iAngle),
+		    i;
 		ctx.moveTo(x,y);
-		for( var i=1; i<nPoints; i+=1 ){
+		for( i=1; i<nPoints; i+=1 ){
 			iAngle += dAngle;
 			x = cx + r*Math.cos(iAngle);
 			y = cy + r*Math.sin(iAngle);
@@ -753,12 +758,12 @@ var $gfxlib = (function($gfxlib){
 
 	// ------------------------------------------------------ Path Stuff --
 
-	var pathLastXs = [];
-	var pathLastYs = [];
-	var pathLastDirs = [];
-	var pathLastPoint = 0;
-	var degToRad = Math.PI/180;
-	var radToDeg = 180/Math.PI;
+	var pathLastXs = [],
+	    pathLastYs = [],
+	    pathLastDirs = [],
+	    pathLastPoint = 0;
+	    // degToRad = Math.PI/180, // defined far above
+	    // radToDeg = 180/Math.PI; // defined far above
 
 	$gfxlib.pathBegin = function(x,y){
 	/// Begins drawing a path on the current canvas
@@ -866,8 +871,9 @@ var $gfxlib = (function($gfxlib){
 	$gfxlib.pathLine = function(){
 	/// Draws lines to the last x,y.
 		var ctx = $gfxlib.canvasContext,
-		    nPts = pathLastXs.length;
-		for( var i = pathLastPoint; i<nPts; i+=1 ){
+		    nPts = pathLastXs.length,
+		    i;
+		for( i=pathLastPoint; i<nPts; i+=1 ){
 			ctx.lineTo(pathLastXs[i],pathLastYs[i]);
 			pathLastPoint += 1;
 		}
@@ -882,9 +888,10 @@ var $gfxlib = (function($gfxlib){
 	///         -1 is to the left.
 
 		var ctx = $gfxlib.canvasContext,
-		    nPts = pathLastXs.length;
+		    nPts = pathLastXs.length,
+		    i;
 		//for( var i = pathLastPoint; i<=nPts; i+=1 ){
-		for( var i = pathLastPoint; i<nPts; i+=1 ){
+		for( i=pathLastPoint; i<nPts; i+=1 ){
 			var x0 = pathLastXs[i-1],
 			    y0 = pathLastYs[i-1],
 			    x1 = pathLastXs[i  ],
@@ -919,8 +926,9 @@ var $gfxlib = (function($gfxlib){
 	/// Draws a curved line to the last x,y. Note that the first line in
 	/// a path cannot be curved using this method.
 		var ctx = $gfxlib.canvasContext,
-		    nPts = pathLastXs.length;
-		for( var i = pathLastPoint+2; i<nPts; i+=2 ){
+		    nPts = pathLastXs.length,
+		    i;
+		for( i=pathLastPoint+2; i<nPts; i+=2 ){
 			var x0 = pathLastXs[i-1],
 			    y0 = pathLastYs[i-1],
 			    x1 = pathLastXs[i],
@@ -935,8 +943,9 @@ var $gfxlib = (function($gfxlib){
 	$gfxlib.pathBezier = function(){
 	/// Draws a Bezier curved line to the last x,y.
 		var ctx = $gfxlib.canvasContext,
-		    nPts = pathLastXs.length;
-		for( var i = pathLastPoint+2; i<nPts; i+=3 ){
+		    nPts = pathLastXs.length,
+		    i;
+		for( i=pathLastPoint+2; i<nPts; i+=3 ){
 			var x0 = pathLastXs[i-2],
 			    y0 = pathLastYs[i-2],
 			    x1 = pathLastXs[i-1],
@@ -978,11 +987,12 @@ var $gfxlib = (function($gfxlib){
 	/// y1: float: the ending y location of the gradient.
 	/// colors: array: an array of strings that represent the colors to be 
 	///   evenly distributed from the start to the end of the gradient.
-		var ctx = $gfxlib.canvasContext;
-		var grad = ctx.createLinearGradient(x0,y0,x1,y1);
-		var l = colors.length;
-		var total = l-1;
-		for(var i=0; i<l; i+=1){
+		var ctx = $gfxlib.canvasContext,
+		    grad = ctx.createLinearGradient(x0,y0,x1,y1),
+		    l = colors.length,
+		    total = l-1,
+		    i;
+		for( i=0; i<l; i+=1){
 			grad.addColorStop(i/total,colors[i]);
 		}
 		return grad;
@@ -1002,11 +1012,12 @@ var $gfxlib = (function($gfxlib){
 	///     a donut).
 	/// colors: array: an array of strings that represent the colors to be 
 	///   evenly distributed from the start to the end of the gradient.
-		var ctx = $gfxlib.canvasContext;
-		var grad = ctx.createRadialGradient(x0,y0,r0,x1,y1,r1);
-		var l = colors.length;
-		var total = l-1;
-		for(var i=0; i<l; i+=1){
+		var ctx = $gfxlib.canvasContext,
+		    grad = ctx.createRadialGradient(x0,y0,r0,x1,y1,r1),
+		    l = colors.length,
+		    total = l-1,
+		    i;
+		for( i=0; i<l; i+=1){
 			grad.addColorStop(i/total,colors[i]);
 		}
 		return grad;
@@ -1076,14 +1087,14 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
-		    nPixels = pixels.length,
 		    result = ctx.createImageData(xSize, ySize),
 		    pos = 0, r = 0, g = 0, b = 0, a = 0,
 		    yLimit = ySize -1,
-		    xLimit = xSize -1;
+		    xLimit = xSize -1,
+		    iy, ix;
 
-		for(var iy=1; iy<yLimit; iy+=1){
-			for(var ix=1; ix<xLimit; ix+=1){
+		for( iy=1; iy<yLimit; iy+=1){
+			for( ix=1; ix<xLimit; ix+=1){
 				// i can optomize the postion calc (ie +- change)
 				// top left
 				iy -= 1; ix -=1; pos = (iy*xSize+ix)*4;
@@ -1168,16 +1179,16 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
-		    nPixels = pixels.length,
 		    result = ctx.createImageData(xSize, ySize),
 		    pos = 0, r = 0, g = 0, b = 0, a = 0,
 		    yLimit = ySize -1,
-		    xLimit = xSize -1;
+		    xLimit = xSize -1,
+		    iy, ix;
 
 		// Horizontal pass
 		// Note: we're starting at 1,0 (not 0,0).
-		for(var iy=0; iy<ySize; iy+=1){
-			for(var ix=1; ix<xLimit; ix+=1){
+		for( iy=0; iy<ySize; iy+=1){
+			for( ix=1; ix<xLimit; ix+=1){
 				// i can optomize the postion calc (ie +- change)
 				// left
 				pos = (iy*xSize+ix-1)*4;
@@ -1209,8 +1220,8 @@ var $gfxlib = (function($gfxlib){
 
 		// Vertical pass (hit every row)
 		// Note: we're starting at 0,1 not (0,0)
-		for(var iy=1; iy<yLimit; iy+=1){
-			for(var ix=0; ix<xSize; ix+=1){
+		for( iy=1; iy<yLimit; iy+=1){
+			for( ix=0; ix<xSize; ix+=1){
 				// i can optomize the postion calc (ie +- change)
 				// above
 				pos = ((iy-1)*xSize+ix)*4;
@@ -1263,21 +1274,21 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
-		    nPixels = pixels.length,
 		    result = ctx.createImageData(xSize, ySize),
 		    pos = 0, r = 0, g = 0, b = 0, a = 0,
 		    border = Math.floor(n/2),
 		    yLimit = ySize -border,
-		    xLimit = xSize -border;
+		    xLimit = xSize -border,
+		    iy, ix, j;
 
 		// Horizontal pass (ie convolving a row)
-		for(var iy=0; iy<ySize; iy+=1){
-			for(var ix=border; ix<xLimit; ix+=1){
+		for( iy=0; iy<ySize; iy+=1){
+			for( ix=border; ix<xLimit; ix+=1){
 				// i can optomize the postion calc (ie +- change)
 				// left
 				pos = (iy*xSize+ix-border)*4;
 				r = 0; g = 0; b = 0; a = 0;
-				for(var j=0; j<n; j+=1){
+				for( j=0; j<n; j+=1 ){
 					pos += 4;
 					r += matrix[j]*pixels[pos+0];
 					g += matrix[j]*pixels[pos+1];
@@ -1293,12 +1304,12 @@ var $gfxlib = (function($gfxlib){
 		}
 
 		// Verticle pass (ie convolving a column)
-		for(var iy=border; iy<yLimit; iy+=1){
-			for(var ix=0; ix<xSize; ix+=1){
+		for( iy=border; iy<yLimit; iy+=1){
+			for( ix=0; ix<xSize; ix+=1){
 				// i can optomize the postion calc (ie +- change)
 				pos = ((iy-border)*xSize+ix)*4;
 				r = 0; g = 0; b = 0; a = 0;
-				for(var j=0; j<n; j+=1){
+				for( j=0; j<n; j+=1 ){
 					pos += 4*xSize;
 					r += matrix[j]*pixels[pos+0];
 					g += matrix[j]*pixels[pos+1];
@@ -1333,17 +1344,16 @@ var $gfxlib = (function($gfxlib){
 	///          function as the last argument.
 		if( ! $gfxlib.canvasContext.getImageData ){ return; } // BAD
 		var ctx = $gfxlib.canvasContext,
-		    xSize = parseInt($gfxlib.canvasNode.width),
-		    ySize = parseInt($gfxlib.canvasNode.height),
+		    xSize = parseInt($gfxlib.canvasNode.width,10),
+		    ySize = parseInt($gfxlib.canvasNode.height,10),
 		    imageData = ctx.getImageData(0, 0, xSize, ySize),
 		    pixels = imageData.data,
-		    nPixels = pixels.length,
 		    result = ctx.createImageData(xSize, ySize),
 		    pos = 0, r = 0, g = 0, b = 0, a = 0,
-		    filteredPixel;
+		    filteredPixel, iy, ix;
 
-		for(var iy=0; iy<ySize; iy+=1){
-			for(var ix=0; ix<xSize; ix+=1){
+		for( iy=0; iy<ySize; iy+=1){
+			for( ix=0; ix<xSize; ix+=1){
 				pos = (iy*xSize+ix)*4;
 				r = pixels[pos+0];
 				g = pixels[pos+1];
@@ -1379,13 +1389,12 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
-		    nPixels = pixels.length,
 		    result = ctx.createImageData(xSize, ySize),
 		    pos = 0, r = 0, g = 0, b = 0, a = 0,
-		    filteredPixel;
+		    filteredPixel, iy, ix;
 
-		for(var iy=0; iy<ySize; iy+=1){
-			for(var ix=0; ix<xSize; ix+=1){
+		for( iy=0; iy<ySize; iy+=1){
+			for( ix=0; ix<xSize; ix+=1){
 				pos = (iy*xSize+ix)*4;
 				r = pixels[pos+0];
 				g = pixels[pos+1];
@@ -1461,7 +1470,7 @@ var $gfxlib = (function($gfxlib){
 		var dR = r - o.fR,
 		    dG = g - o.fG,
 		    dB = b - o.fB,
-		    dist = Math.abs(dR)+Math.abs(dG)+Math.abs(dB);
+		    dist = Math.abs(dR)+Math.abs(dG)+Math.abs(dB),
 		    rR = r,
 		    rG = g,
 		    rB = b;
@@ -1486,12 +1495,12 @@ var $gfxlib = (function($gfxlib){
 		    min = Math.min(r,g,b),
 		    chroma = max - min,
 		    luminance = chroma / 2,
-		    saturation = chroma / (1 - Math.abs(2*luminance-1)),
+		    // saturation = chroma / (1 - Math.abs(2*luminance-1)),
 		    hue = 0;
 
-		if( max == r ){ hue = ((g-b)/chroma) % 6; }else
-		if( max == g ){ hue =  (b-r)/chroma  + 2; }else
-		if( max == b ){ hue =  (r-g)/chroma  + 4; }
+		if( max === r ){ hue = ((g-b)/chroma) % 6; }else
+		if( max === g ){ hue =  (b-r)/chroma  + 2; }else
+		if( max === b ){ hue =  (r-g)/chroma  + 4; }
 
 		hue *= 60;
 		hue %= 360;
@@ -1546,7 +1555,6 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
-		    nPixels = pixels.length,
 		    xHalf = xSize/2,
 		    yHalf = ySize/2,
 		    resultHor = ctx.createImageData(xSize, ySize),
@@ -1555,26 +1563,27 @@ var $gfxlib = (function($gfxlib){
 		    posAvg = 0, posDiff = 0,
 		    border = 0,
 		    yLimit = ySize -border,
-		    xLimit = xSize -border;
+		    xLimit = xSize -border,
+		    iy, ix, r1, r2, g1, g2, b1, b2, a1, a2;
 
 
 		// Horizontal pass (ie Haar transforming every row)
-		for(var iy=0; iy<ySize; iy+=1){
-			for(var ix=border; ix<xLimit; ix+=2){
+		for( iy=0; iy<ySize; iy+=1){
+			for( ix=border; ix<xLimit; ix+=2){
 
 				// Read the values to tbe transformed
 				pos = (iy*xSize+ix-border)*4;
 				//console.info(pos);
 				posNext = (iy*xSize+(ix+1)-border)*4;
 				//console.info(posNext);
-				var r1 = pixels[pos+0],
-				    r2 = pixels[posNext+0],
-				    g1 = pixels[pos+1],
-				    g2 = pixels[posNext+1],
-				    b1 = pixels[pos+2],
-				    b2 = pixels[posNext+2],
-				    a1 = pixels[pos+3],
-				    a2 = pixels[posNext+3];
+				r1 = pixels[pos+0];
+				r2 = pixels[posNext+0];
+				g1 = pixels[pos+1];
+				g2 = pixels[posNext+1];
+				b1 = pixels[pos+2];
+				b2 = pixels[posNext+2];
+				a1 = pixels[pos+3];
+				a2 = pixels[posNext+3];
 
 				// Store averages
 				posAvg = (iy*xSize+(ix-border)/2)*4;
@@ -1596,20 +1605,20 @@ var $gfxlib = (function($gfxlib){
 		}
 
 		// Verticle pass (ie transforming each column)
-		for(var ix=0; ix<xSize; ix+=1){
-			for(var iy=border; iy<yLimit; iy+=2){
+		for( ix=0; ix<xSize; ix+=1){
+			for( iy=border; iy<yLimit; iy+=2){
 
 				// Read the values to tbe transformed
 				pos = ((iy-border)*xSize+ix)*4;
 				posNext = ((iy+1-border)*xSize+ix)*4;
-				var r1 = resultHor.data[pos+0],
-				    r2 = resultHor.data[posNext+0],
-				    g1 = resultHor.data[pos+1],
-				    g2 = resultHor.data[posNext+1],
-				    b1 = resultHor.data[pos+2],
-				    b2 = resultHor.data[posNext+2],
-				    a1 = resultHor.data[pos+3],
-				    a2 = resultHor.data[posNext+3];
+				r1 = resultHor.data[pos+0];
+				r2 = resultHor.data[posNext+0];
+				g1 = resultHor.data[pos+1];
+				g2 = resultHor.data[posNext+1];
+				b1 = resultHor.data[pos+2];
+				b2 = resultHor.data[posNext+2];
+				a1 = resultHor.data[pos+3];
+				a2 = resultHor.data[posNext+3];
 
 				// Store averages
 				posAvg = (((iy-border)/2)*xSize+ix)*4;
@@ -1651,7 +1660,6 @@ var $gfxlib = (function($gfxlib){
 		var ctx = $gfxlib.canvasContext,
 		    imageData = ctx.getImageData(x, y, xSize, ySize),
 		    pixels = imageData.data,
-		    nPixels = pixels.length,
 		    xHalf = xSize/2,
 		    yHalf = ySize/2,
 		    resultHor = ctx.createImageData(xSize, ySize),
@@ -1660,26 +1668,27 @@ var $gfxlib = (function($gfxlib){
 		    posAvg = 0, posDiff = 0,
 		    border = 0,
 		    yLimit = ySize -border,
-		    xLimit = xSize -border;
+		    xLimit = xSize -border,
+		    iy, ix, rA, rD, gA, gD, bA, bD, aA, aD;
 
 		// Verticle pass (ie transforming each column)
 		// We forward transform horizontally then vertically; therefore,
 		// to reverse we must inverse transfrom vertically then horizontally.
 		// I don't actually know that that is true, but it appears logical.
-		for(var ix=0; ix<xSize; ix+=1){
-			for(var iy=border; iy<yLimit; iy+=2){
+		for( ix=0; ix<xSize; ix+=1){
+			for( iy=border; iy<yLimit; iy+=2){
 
 				// Read averages and differences
 				posAvg = (((iy-border)/2)*xSize+ix)*4;
 				posDiff = (((iy-border)/2+yHalf)*xSize+ix)*4;
-				var rA = pixels[posAvg +0],
-				    rD = pixels[posDiff+0] - rOffset,
-				    gA = pixels[posAvg +1],
-				    gD = pixels[posDiff+1] - gOffset,
-				    bA = pixels[posAvg +2],
-				    bD = pixels[posDiff+2] - bOffset,
-				    aA = pixels[posAvg +3],
-				    aD = pixels[posDiff+3] - aOffset;
+				rA = pixels[posAvg +0];
+				rD = pixels[posDiff+0] - rOffset;
+				gA = pixels[posAvg +1];
+				gD = pixels[posDiff+1] - gOffset;
+				bA = pixels[posAvg +2];
+				bD = pixels[posDiff+2] - bOffset;
+				aA = pixels[posAvg +3];
+				aD = pixels[posDiff+3] - aOffset;
 
 				// Untransform them
 				pos = ((iy-border)*xSize+ix)*4;
@@ -1697,20 +1706,20 @@ var $gfxlib = (function($gfxlib){
 		}
 
 		// Horizontal pass (ie Haar transforming every row)
-		for(var iy=0; iy<ySize; iy+=1){
-			for(var ix=border; ix<xLimit; ix+=2){
+		for( iy=0; iy<ySize; iy+=1){
+			for( ix=border; ix<xLimit; ix+=2){
 
 				// Read averages and differences
 				posAvg = (iy*xSize+(ix-border)/2)*4;
 				posDiff = (iy*xSize+xHalf+(ix-border)/2)*4;
-				var rA = resultVer.data[posAvg +0],
-				    rD = resultVer.data[posDiff+0] - rOffset,
-				    gA = resultVer.data[posAvg +1],
-				    gD = resultVer.data[posDiff+1] - gOffset,
-				    bA = resultVer.data[posAvg +2],
-				    bD = resultVer.data[posDiff+2] - bOffset,
-				    aA = resultVer.data[posAvg +3],
-				    aD = resultVer.data[posDiff+3] - aOffset;
+				rA = resultVer.data[posAvg +0];
+				rD = resultVer.data[posDiff+0] - rOffset;
+				gA = resultVer.data[posAvg +1];
+				gD = resultVer.data[posDiff+1] - gOffset;
+				bA = resultVer.data[posAvg +2];
+				bD = resultVer.data[posDiff+2] - bOffset;
+				aA = resultVer.data[posAvg +3];
+				aD = resultVer.data[posDiff+3] - aOffset;
 
 				// Untransform them
 				pos = (iy*xSize+ix-border)*4;
